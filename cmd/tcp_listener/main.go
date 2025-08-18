@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
-	"github.com/gabrielluizsf/tcp_to_http/pkg/channel"
 )
 
 var (
@@ -46,8 +45,4 @@ func readFromNetConn() {
 
 func netConnReader() (io.ReadCloser, error) {
 	return listener.Accept()
-}
-
-func getLinesChannel(f io.ReadCloser) <-chan string {
-	return channel.Lines{}.Get(f)
 }
