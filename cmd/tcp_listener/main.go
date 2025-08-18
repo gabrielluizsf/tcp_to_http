@@ -5,8 +5,8 @@ import (
 	"io"
 	"net"
 
+	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/pkg/channel"
-	"github.com/i9si-sistemas/stringx"
 )
 
 var (
@@ -33,9 +33,14 @@ func readFromNetConn() {
 		if err != nil {
 			panic(err)
 		}
-		for line := range getLinesChannel(conn) {
-			fmt.Println(stringx.Space.String(), line)
+		r, err := request.NewFromReader(conn)
+		if err != nil {
+			panic(err)
 		}
+		fmt.Println("Request Line:")
+		fmt.Printf("Method: %s\n", r.Line.Method)
+		fmt.Printf("Target: %s\n", r.Line.Target)
+		fmt.Printf("Version: %s\n", r.Line.Version)
 	}
 }
 
