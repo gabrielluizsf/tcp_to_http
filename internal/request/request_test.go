@@ -55,3 +55,33 @@ func TestRequestHeadersParse(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRequestBodyParse(t *testing.T) {
+	t.Run("Standard Body", func(t *testing.T) {
+		reader := &chunkReader{
+			data: "POST /submit HTTP/1.1\r\n" +
+				"Host: localhost:42069\r\n" +
+				"Content-Length: 13\r\n" +
+				"\r\n" +
+				"hello world!\n",
+			numBytesPerRead: 3,
+		}
+		r, err := NewFromReader(reader)
+		assert.NoError(t, err)
+		assert.NotNil(t, r)
+		assert.Equal(t, "hello world!\n", string(r.Body))
+	})
+
+	t.Run("Body shorter than reported content length", func(t *testing.T) {
+		reader := &chunkReader{
+			data: "POST /submit HTTP/1.1\r\n" +
+				"Host: localhost:42069\r\n" +
+				"Content-Length: 20\r\n" +
+				"\r\n" +
+				"partial content",
+			numBytesPerRead: 3,
+		}
+		_, err := NewFromReader(reader)
+		assert.Error(t, err)
+	})
+}
