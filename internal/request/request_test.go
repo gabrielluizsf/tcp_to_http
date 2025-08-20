@@ -31,3 +31,27 @@ func TestRequestLineParse(t *testing.T) {
 	_, err = NewFromReader(stringx.NewReader("/coffe HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept:*/*\r\n\r\n"))
 	assert.Error(t, err)
 }
+
+func TestRequestHeadersParse(t *testing.T) {
+	t.Run("Standard Headers", func(t *testing.T) {
+		reader := &chunkReader{
+			data:            "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
+			numBytesPerRead: 3,
+		}
+		r, err := NewFromReader(reader)
+		assert.NoError(t, err)
+		assert.NotNil(t, r)
+		assert.Equal(t, "localhost:42069", r.Headers["host"])
+		assert.Equal(t, "curl/7.81.0", r.Headers["user-agent"])
+		assert.Equal(t, "*/*", r.Headers["accept"])
+	})
+
+	t.Run("Malformed Header", func(t *testing.T) {
+		reader := &chunkReader{
+			data:            "GET / HTTP/1.1\r\nHost localhost:42069\r\n\r\n",
+			numBytesPerRead: 3,
+		}
+		_, err := NewFromReader(reader)
+		assert.Error(t, err)
+	})
+}
