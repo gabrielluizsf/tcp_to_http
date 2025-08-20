@@ -11,6 +11,7 @@ import (
 var (
 	HTTP_VERSION              = "HTTP/1.1"
 	SEPARATOR                 = "\r\n"
+	ErrBodyShorterThanCL      = errors.New("body shorter than Content-Length")
 	ErrMalformedRequestLine   = errors.New("malformed request-line")
 	ErrMalformedHTTPVersion   = errors.New("malformed http version")
 	ErrRequestInErrorState    = errors.New("request in error state")
@@ -50,6 +51,7 @@ const (
 	StateInit    parserState = "init"
 	StateDone    parserState = "done"
 	StateHeaders parserState = "headers"
+	StateBody    parserState = "body"
 	StateError   parserState = "error"
 )
 
@@ -90,11 +92,13 @@ func parseRequestLine(
 type Request struct {
 	Line    RequestLine
 	Headers headers.Headers
+	Body    []byte
 	state   parserState
 }
 
 func (req *Request) parse(data []byte) (int, error) {
 	read := 0
+
 parseLoop:
 	for {
 		switch req.state {
@@ -125,13 +129,36 @@ parseLoop:
 			}
 			read += n
 			if done {
+				req.state = StateBody
+			}
+
+		case StateBody:
+			contentLength := req.getIntHeader("Content-Length", 0)
+			if contentLength == 0 {
 				req.state = StateDone
+				break parseLoop
+			}
+
+			toRead := min(contentLength-len(req.Body), len(data)-read)
+			req.Body = append(req.Body, data[read:read+toRead]...)
+			read += toRead
+
+			if len(req.Body) == contentLength {
+				req.state = StateDone
+			} else if toRead == 0 {
+				break parseLoop
 			}
 
 		case StateDone:
 			break parseLoop
 		}
 	}
+
+	if req.state == StateBody && len(req.Body) < req.getIntHeader("Content-Length", 0) && len(data) == 0 {
+		req.state = StateError
+		return read, ErrBodyShorterThanCL
+	}
+
 	return read, nil
 }
 
@@ -141,6 +168,18 @@ func (req *Request) error() bool {
 
 func (req *Request) done() bool {
 	return req.state == StateDone || req.error()
+}
+
+func (req *Request) getIntHeader(key string, defaultValue int) int {
+	value, ok := req.Headers.Get(key)
+	if !ok {
+		return defaultValue
+	}
+	result, err := stringx.NewParser(value).Int()
+	if err != nil {
+		return defaultValue
+	}
+	return int(result)
 }
 
 type RequestLine struct {
