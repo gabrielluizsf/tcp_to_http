@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
 	"github.com/i9si-sistemas/stringx"
 )
 
@@ -38,16 +39,18 @@ func NewFromReader(r io.Reader) (req *Request, err error) {
 
 func newRequest() *Request {
 	return &Request{
-		state: StateInit,
+		state:   StateInit,
+		Headers: headers.New(),
 	}
 }
 
 type parserState string
 
 const (
-	StateInit  parserState = "init"
-	StateDone  parserState = "done"
-	StateError parserState = "error"
+	StateInit    parserState = "init"
+	StateDone    parserState = "done"
+	StateHeaders parserState = "headers"
+	StateError   parserState = "error"
 )
 
 func parseRequestLine(
@@ -85,8 +88,9 @@ func parseRequestLine(
 
 // Request represents the HTTP request
 type Request struct {
-	Line  RequestLine
-	state parserState
+	Line    RequestLine
+	Headers headers.Headers
+	state   parserState
 }
 
 func (req *Request) parse(data []byte) (int, error) {
@@ -96,6 +100,7 @@ parseLoop:
 		switch req.state {
 		case StateError:
 			return 0, ErrRequestInErrorState
+
 		case StateInit:
 			rl, n, err := parseRequestLine(data[read:])
 			if err != nil {
@@ -107,7 +112,22 @@ parseLoop:
 			}
 			req.Line = *rl
 			read += n
-			req.state = StateDone
+			req.state = StateHeaders
+
+		case StateHeaders:
+			n, done, err := req.Headers.Parse(data[read:])
+			if err != nil {
+				req.state = StateError
+				return 0, err
+			}
+			if n == 0 {
+				break parseLoop
+			}
+			read += n
+			if done {
+				req.state = StateDone
+			}
+
 		case StateDone:
 			break parseLoop
 		}
