@@ -37,4 +37,12 @@ func TestHeadersParse(t *testing.T) {
 		assert.Equal(t, n, 0)
 		assert.False(t, done)
 	})
+	t.Run("Invalid Caracter header key", func(t *testing.T) {
+		headers := New()
+		data := []byte("H©st: localhost:42069\r\n\r\n")
+		n, done, err := headers.Parse(data)
+		assert.Error(t, err)
+		assert.Equal(t, n, 0)
+		assert.False(t, done)
+	})
 }
