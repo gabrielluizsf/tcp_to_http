@@ -45,4 +45,23 @@ func TestHeadersParse(t *testing.T) {
 		assert.Equal(t, n, 0)
 		assert.False(t, done)
 	})
+	t.Run("Set Mutiple Headers", func(t *testing.T) {
+		headers := New()
+		headers.Set("Host", "localhost:42069")
+		headers.Set("FooFoo", "barbar")
+		headers.Set("FooFoo", "bazqux")
+		headers.Set("Foofoo", "bazbaz")
+
+		value, ok := headers.Get("Host")
+		assert.True(t, ok)
+		assert.Equal(t, value, "localhost:42069")
+
+		value, ok = headers.Get("Foofoo")
+		assert.True(t, ok)
+		assert.Equal(t, value, "barbar, bazqux, bazbaz")
+
+		value, ok = headers.Get("Missingkey")
+		assert.False(t, ok)
+		assert.Equal(t, value, stringx.Empty)
+	})
 }
