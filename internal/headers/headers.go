@@ -47,27 +47,31 @@ func (h Headers) Parse(data []byte) (read int, done bool, err error) {
 		if idx < 0 {
 			break
 		}
+
 		if idx == 0 {
+			read += len(rn)
 			done = true
 			break
 		}
-		key, value, err := parseHeader(data[read : read+idx])
+
+		line := data[read : read+idx]
+		key, value, err := parseHeader(line)
 		if err != nil {
 			return 0, false, err
 		}
 		if !isToken(key) {
 			return 0, false, fmt.Errorf("invalid header key: %s", key)
 		}
-		read += idx + len(rn)
+
 		h.Set(key, value)
+		read += idx + len(rn)
 	}
-	read += len(rn)
 	return
 }
 
 func parseHeader(fieldLine []byte) (key, value string, err error) {
 	emptyStr := stringx.Empty.String()
-	parts := stringx.New(fieldLine).SplitN(":", 2)
+	parts := stringx.New(string(fieldLine)).SplitN(":", 2)
 	if len(parts) != 2 {
 		return emptyStr, emptyStr, fmt.Errorf("invalid header line: %s", fieldLine)
 	}
