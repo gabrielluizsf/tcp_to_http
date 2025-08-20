@@ -50,10 +50,13 @@ func (h Headers) Parse(data []byte) (read int, done bool, err error) {
 		if err != nil {
 			return 0, false, err
 		}
+		if !isToken(key) {
+			return 0, false, fmt.Errorf("invalid header key: %s", key)
+		}
 		read += idx + len(rn)
 		h.Set(key, value)
 	}
-	read += len(rn) 
+	read += len(rn)
 	return
 }
 
@@ -74,4 +77,30 @@ func parseHeader(fieldLine []byte) (key, value string, err error) {
 		return emptyStr, emptyStr, fmt.Errorf("invalid header line: %s", fieldLine)
 	}
 	return key, value, nil
+}
+
+func isToken(s string) (found bool) {
+	isAlphaNum := func(ch byte) bool {
+		return (ch >= 'A' && ch <= 'Z') ||
+			(ch >= 'a' && ch <= 'z') ||
+			(ch >= '0' && ch <= '9')
+	}
+	isSymbol := func(ch byte) bool {
+		return ch == '!' || ch == '#' || ch == '$' ||
+			ch == '%' || ch == '&' || ch == '\'' ||
+			ch == '*' || ch == '+' || ch == '-' ||
+			ch == '.' || ch == '^' || ch == '_' ||
+			ch == '`' || ch == '|' || ch == '~'
+	}
+
+	isValid := func(s string) bool {
+		for i := 0; i < len(s); i++ {
+			ch := s[i]
+			if !isAlphaNum(ch) && !isSymbol(ch) {
+				return false
+			}
+		}
+		return true
+	}
+	return isValid(s)
 }
