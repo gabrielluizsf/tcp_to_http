@@ -53,7 +53,7 @@ func (h Headers) Parse(data []byte) (read int, done bool, err error) {
 		read += idx + len(rn)
 		h.Set(key, value)
 	}
-	read += len(rn) // Account for the final \r\n
+	read += len(rn) 
 	return
 }
 
