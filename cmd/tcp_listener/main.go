@@ -40,6 +40,10 @@ func readFromNetConn() {
 		fmt.Printf("Method: %s\n", r.Line.Method)
 		fmt.Printf("Target: %s\n", r.Line.Target)
 		fmt.Printf("Version: %s\n", r.Line.Version)
+		fmt.Println("Headers:")
+		for key, value := range r.Headers {
+			fmt.Printf("%s: %s\n", key, value)
+		}
 	}
 }
 
