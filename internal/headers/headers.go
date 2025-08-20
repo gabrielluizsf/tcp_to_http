@@ -28,7 +28,7 @@ func (h Headers) Set(key, value string) {
 		return
 	}
 	if old, ok := h[toLowerCase(key)]; ok {
-		h[toLowerCase(key)] = fmt.Sprintf("%s, %s",old, value)
+		h[toLowerCase(key)] = fmt.Sprintf("%s, %s", old, value)
 		return
 	}
 
