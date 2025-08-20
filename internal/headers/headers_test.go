@@ -14,12 +14,20 @@ func TestHeadersParse(t *testing.T) {
 		n, done, err := headers.Parse(data)
 		assert.NoError(t, err)
 		assert.NotNil(t, headers)
-		assert.Equal(t, headers["Host"], "localhost:42069")
-		assert.Equal(t, headers["FooFoo"], "barbar")
-		assert.Equal(t, headers["MissingKey"], stringx.Empty)
 		assert.Equal(t, n, 52)
 		assert.True(t, done)
 
+		value, ok := headers.Get("Host")
+		assert.True(t, ok)
+		assert.Equal(t, value, "localhost:42069")
+
+		value, ok = headers.Get("Foofoo")
+		assert.True(t, ok)
+		assert.Equal(t, value, "barbar")
+
+		value, ok = headers.Get("Missingkey")
+		assert.False(t, ok)
+		assert.Equal(t, value, stringx.Empty)
 	})
 	t.Run("Invalid spacing header", func(t *testing.T) {
 		headers := New()
