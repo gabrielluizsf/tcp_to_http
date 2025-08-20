@@ -2,3 +2,5 @@ github.com/i9si-sistemas/assert v0.0.0-20250430171352-359d1481c58c h1:8DlRk8oT2Y
 github.com/i9si-sistemas/assert v0.0.0-20250430171352-359d1481c58c/go.mod h1:xRwY4u6NZZjNLlgdBSaNESQEUSJ4CxuT4lWQAbvwfBQ=
 github.com/i9si-sistemas/stringx v1.6.0 h1:HrE7YfqkJT1PDPqm6vKfZzzswDtdon+LfcLr7xFLwyQ=
 github.com/i9si-sistemas/stringx v1.6.0/go.mod h1:+GhyHUFCjPCdi4BOTLuXI1O0VE0YZP1kn32XEcb9bk4=
+github.com/i9si-sistemas/stringx v1.7.0 h1:aF36Wawm8D7tozx3Blj2rgIyBg28ENzMFnOzdO1iZZI=
+github.com/i9si-sistemas/stringx v1.7.0/go.mod h1:+GhyHUFCjPCdi4BOTLuXI1O0VE0YZP1kn32XEcb9bk4=
