@@ -14,8 +14,24 @@ func New() Headers {
 }
 
 func (h Headers) Get(key string) (value string, ok bool) {
-	value, ok = h[key]
+	value, ok = h[toLowerCase(key)]
 	return
+}
+
+func (h Headers) Set(key, value string) {
+	isEmpty := func(s string) bool { return len(s) == 0 }
+	if isEmpty(key) {
+		return
+	}
+	if isEmpty(value) {
+		delete(h, toLowerCase(key))
+		return
+	}
+	h[toLowerCase(key)] = value
+}
+
+func toLowerCase(s string) string {
+	return stringx.New(s).ToLowerCase().String()
 }
 
 const rn = "\r\n"
@@ -35,7 +51,7 @@ func (h Headers) Parse(data []byte) (read int, done bool, err error) {
 			return 0, false, err
 		}
 		read += idx + len(rn)
-		h[key] = value
+		h.Set(key, value)
 	}
 	read += len(rn) // Account for the final \r\n
 	return
