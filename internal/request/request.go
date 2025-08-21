@@ -5,11 +5,12 @@ import (
 	"io"
 
 	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
+	"github.com/gabrielluizsf/tcp_to_http/internal/version"
 	"github.com/i9si-sistemas/stringx"
 )
 
 var (
-	HTTP_VERSION              = "HTTP/1.1"
+	HTTP_VERSION              = version.HTTP
 	SEPARATOR                 = "\r\n"
 	ErrBodyShorterThanCL      = errors.New("body shorter than Content-Length")
 	ErrMalformedRequestLine   = errors.New("malformed request-line")
