@@ -44,6 +44,11 @@ func readFromNetConn() {
 		for key, value := range r.Headers {
 			fmt.Printf("%s: %s\n", key, value)
 		}
+		if len(r.Body) > 0 {
+			fmt.Println("Body:")
+			fmt.Printf("%s\n", r.Body)
+		}
+		
 	}
 }
 
