@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net"
@@ -62,26 +61,12 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 			fmt.Printf("Error closing connection: %v\n", err)
 		}
 	}()
-	headers := response.GetDefaultHeaders(0)
+	responseWriter := response.NewWriter(conn)
 	req, err := request.NewFromReader(conn)
 	if err != nil {
-		response.WriteStatusLine(conn, response.StatusBadRequest)
-		response.WriteHeaders(conn, headers)
+		responseWriter.WriteStatusLine(response.StatusBadRequest)
+		responseWriter.WriteHeaders(response.GetDefaultHeaders(0))
 		return
 	}
-	writer := bytes.NewBuffer([]byte{})
-	handlerError := s.handler(writer, req)
-	body := writer.Bytes()
-	status := response.StatusOK
-	if handlerError != nil {
-		body = []byte(handlerError.Message)
-		status = handlerError.StatusCode
-	}
-	contentLen := len(body)
-	headers.Replace("Content-Length", fmt.Sprint(contentLen))
-	response.WriteStatusLine(conn, status)
-	response.WriteHeaders(conn, headers)
-	if _, err := conn.Write(body); err != nil {
-		fmt.Printf("Error writing response body: %v\n", err)
-	}
+	s.handler(responseWriter, req)
 }
