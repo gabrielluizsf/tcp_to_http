@@ -71,17 +71,15 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 	}
 	writer := bytes.NewBuffer([]byte{})
 	handlerError := s.handler(writer, req)
-	if handlerError != nil {
-		headers.Replace("Content-Length", fmt.Sprint(len(handlerError.Message)))
-		response.WriteStatusLine(conn, handlerError.StatusCode)
-		response.WriteHeaders(conn, headers)
-		conn.Write([]byte(handlerError.Message))
-		return
-	}
 	body := writer.Bytes()
+	status := response.StatusOK
+	if handlerError != nil {
+		body = []byte(handlerError.Message)
+		status = handlerError.StatusCode
+	}
 	contentLen := len(body)
 	headers.Replace("Content-Length", fmt.Sprint(contentLen))
-	response.WriteStatusLine(conn, response.StatusOK)
+	response.WriteStatusLine(conn, status)
 	response.WriteHeaders(conn, headers)
 	if _, err := conn.Write(body); err != nil {
 		fmt.Printf("Error writing response body: %v\n", err)
