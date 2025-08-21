@@ -28,10 +28,14 @@ func (h Headers) Set(key, value string) {
 		return
 	}
 	if old, ok := h[toLowerCase(key)]; ok {
-		h[toLowerCase(key)] = fmt.Sprintf("%s, %s", old, value)
+		h.Replace(key, fmt.Sprintf("%s, %s", old, value))
 		return
 	}
 
+	h.Replace(key, value)
+}
+
+func (h Headers) Replace(key, value string) {
 	h[toLowerCase(key)] = value
 }
 
