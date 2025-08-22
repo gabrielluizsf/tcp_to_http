@@ -39,6 +39,10 @@ func (h Headers) Replace(key, value string) {
 	h[toLowerCase(key)] = value
 }
 
+func (h Headers) Delete(key string) {
+	delete(h, toLowerCase(key))
+}
+
 func toLowerCase(s string) string {
 	return stringx.New(s).ToLowerCase().String()
 }
