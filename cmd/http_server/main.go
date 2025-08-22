@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,6 +29,30 @@ func main() {
 		case endpoint.Includes("/myproblem"):
 			statusCode = response.StatusInternalServerError
 			contentType, body = respond500()
+		case endpoint.HasPrefix("/httpbin/stream"):
+			r, err := http.Get("https://httpbin.org/" + endpoint.String()[len("/httpbin/"):])
+			if err != nil {
+				contentType, body = respond500()
+				statusCode = response.StatusInternalServerError
+			} else {
+				res.WriteStatusLine(response.StatusOK)
+				headers.Delete("Content-Length")
+				headers.Set("transfer-encoding", "chunked")
+				headers.Set("Content-Type", "text/plain")
+				res.WriteHeaders(headers)
+				for {
+					data := make([]byte, 32)
+					n, err := r.Body.Read(data)
+					if err != nil {
+						break
+					}
+					res.WriteBody(fmt.Appendf([]byte{}, "%x\r\n", n))
+					res.WriteBody(data[:n])
+					res.WriteBody([]byte("\r\n"))
+				}
+				res.WriteBody([]byte("0\r\n\r\n"))
+				return
+			}
 		}
 		res.WriteStatusLine(statusCode)
 		headers.Replace("Content-Length", fmt.Sprint(len(body)))
