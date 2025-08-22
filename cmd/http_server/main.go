@@ -31,6 +31,14 @@ func main() {
 		case endpoint.Equal("/myproblem"):
 			statusCode = response.StatusInternalServerError
 			contentType, body = respond500()
+		case endpoint.Equal("/video"):
+			f, _ := os.ReadFile("./assets/video.mp4")
+			h.Set("Content-Type", "video/mp4")
+			h.Replace("Content-Length", fmt.Sprint(len(f)))
+			res.WriteStatusLine(response.StatusOK)
+			res.WriteHeaders(h)
+			res.WriteBody(f)
+			return
 		case endpoint.HasPrefix("/httpbin/stream"):
 			r, err := http.Get("https://httpbin.org/" + endpoint.String()[len("/httpbin/"):])
 			if err != nil {
