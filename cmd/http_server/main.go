@@ -25,10 +25,10 @@ func main() {
 		contentType, body := respond200()
 		statusCode := response.StatusOK
 		switch {
-		case endpoint.Includes("/yourproblem"):
+		case endpoint.Equal("/yourproblem"):
 			statusCode = response.StatusBadRequest
 			contentType, body = respond400()
-		case endpoint.Includes("/myproblem"):
+		case endpoint.Equal("/myproblem"):
 			statusCode = response.StatusInternalServerError
 			contentType, body = respond500()
 		case endpoint.HasPrefix("/httpbin/stream"):
