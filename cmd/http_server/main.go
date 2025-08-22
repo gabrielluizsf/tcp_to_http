@@ -19,72 +19,7 @@ import (
 const port = 42069
 
 func main() {
-	server, err := server.Serve(port, func(res *response.Writer, req *request.Request) {
-		endpoint := stringx.New(req.Line.Target)
-		h := response.GetDefaultHeaders(0)
-		contentType, body := respond200()
-		statusCode := response.StatusOK
-		switch {
-		case endpoint.Equal("/yourproblem"):
-			statusCode = response.StatusBadRequest
-			contentType, body = respond400()
-		case endpoint.Equal("/myproblem"):
-			statusCode = response.StatusInternalServerError
-			contentType, body = respond500()
-		case endpoint.Equal("/video"):
-			f, _ := os.ReadFile("./assets/video.mp4")
-			h.Set("Content-Type", "video/mp4")
-			h.Replace("Content-Length", fmt.Sprint(len(f)))
-			res.WriteStatusLine(response.StatusOK)
-			res.WriteHeaders(h)
-			res.WriteBody(f)
-			return
-		case endpoint.HasPrefix("/httpbin/stream"):
-			r, err := http.Get("https://httpbin.org/" + endpoint.String()[len("/httpbin/"):])
-			if err != nil {
-				contentType, body = respond500()
-				statusCode = response.StatusInternalServerError
-			} else {
-				res.WriteStatusLine(response.StatusOK)
-				h.Delete("Content-Length")
-				h.Set("transfer-encoding", "chunked")
-				h.Set("Content-Type", "text/plain")
-				h.Set("Trailer", "X-Content-SHA256")
-				h.Set("Trailer", "X-Content-Length")
-				res.WriteHeaders(h)
-				fullBody := []byte{}
-				for {
-					data := make([]byte, 32)
-					n, err := r.Body.Read(data)
-					if err != nil {
-						break
-					}
-					fullBody = append(fullBody, data[:n]...)
-					res.WriteBody(fmt.Appendf([]byte{}, "%x\r\n", n))
-					res.WriteBody(data[:n])
-					res.WriteBody([]byte("\r\n"))
-				}
-				res.WriteBody([]byte("0\r\n"))
-				tailers := headers.New()
-				hash := sha256.Sum256(fullBody)
-				toHexadecimalStr := func(bytes []byte) (result string) {
-					for _, c := range bytes {
-						result += fmt.Sprintf("%02x", c)
-					}
-					return
-				}
-				tailers.Set("X-Content-SHA256", toHexadecimalStr(hash[:]))
-				tailers.Set("X-Content-Length", fmt.Sprint(len(fullBody)))
-				res.WriteHeaders(tailers)
-				return
-			}
-		}
-		res.WriteStatusLine(statusCode)
-		h.Replace("Content-Length", fmt.Sprint(len(body)))
-		h.Replace("Content-Type", contentType)
-		res.WriteHeaders(h)
-		res.WriteBody(body)
-	})
+	server, err := server.Serve(port, handler)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
@@ -95,6 +30,73 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 	log.Println("Server gracefully stopped")
+}
+
+func handler(res *response.Writer, req *request.Request) {
+	endpoint := stringx.New(req.Line.Target)
+	h := response.GetDefaultHeaders(0)
+	contentType, body := respond200()
+	statusCode := response.StatusOK
+	switch {
+	case endpoint.Equal("/yourproblem"):
+		statusCode = response.StatusBadRequest
+		contentType, body = respond400()
+	case endpoint.Equal("/myproblem"):
+		statusCode = response.StatusInternalServerError
+		contentType, body = respond500()
+	case endpoint.Equal("/video"):
+		f, _ := os.ReadFile("./assets/video.mp4")
+		h.Set("Content-Type", "video/mp4")
+		h.Replace("Content-Length", fmt.Sprint(len(f)))
+		res.WriteStatusLine(response.StatusOK)
+		res.WriteHeaders(h)
+		res.WriteBody(f)
+		return
+	case endpoint.HasPrefix("/httpbin/stream"):
+		r, err := http.Get("https://httpbin.org/" + endpoint.String()[len("/httpbin/"):])
+		if err != nil {
+			contentType, body = respond500()
+			statusCode = response.StatusInternalServerError
+		} else {
+			res.WriteStatusLine(response.StatusOK)
+			h.Delete("Content-Length")
+			h.Set("transfer-encoding", "chunked")
+			h.Set("Content-Type", "text/plain")
+			h.Set("Trailer", "X-Content-SHA256")
+			h.Set("Trailer", "X-Content-Length")
+			res.WriteHeaders(h)
+			fullBody := []byte{}
+			for {
+				data := make([]byte, 32)
+				n, err := r.Body.Read(data)
+				if err != nil {
+					break
+				}
+				fullBody = append(fullBody, data[:n]...)
+				res.WriteBody(fmt.Appendf([]byte{}, "%x\r\n", n))
+				res.WriteBody(data[:n])
+				res.WriteBody([]byte("\r\n"))
+			}
+			res.WriteBody([]byte("0\r\n"))
+			tailers := headers.New()
+			hash := sha256.Sum256(fullBody)
+			toHexadecimalStr := func(bytes []byte) (result string) {
+				for _, c := range bytes {
+					result += fmt.Sprintf("%02x", c)
+				}
+				return
+			}
+			tailers.Set("X-Content-SHA256", toHexadecimalStr(hash[:]))
+			tailers.Set("X-Content-Length", fmt.Sprint(len(fullBody)))
+			res.WriteHeaders(tailers)
+			return
+		}
+	}
+	res.WriteStatusLine(statusCode)
+	h.Replace("Content-Length", fmt.Sprint(len(body)))
+	h.Replace("Content-Type", contentType)
+	res.WriteHeaders(h)
+	res.WriteBody(body)
 }
 
 const HTML_CONTENT_TYPE = "text/html; charset=utf-8"
