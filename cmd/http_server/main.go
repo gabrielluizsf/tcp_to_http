@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
 	"github.com/gabrielluizsf/tcp_to_http/internal/server"
@@ -19,7 +21,7 @@ const port = 42069
 func main() {
 	server, err := server.Serve(port, func(res *response.Writer, req *request.Request) {
 		endpoint := stringx.New(req.Line.Target)
-		headers := response.GetDefaultHeaders(0)
+		h := response.GetDefaultHeaders(0)
 		contentType, body := respond200()
 		statusCode := response.StatusOK
 		switch {
@@ -36,28 +38,43 @@ func main() {
 				statusCode = response.StatusInternalServerError
 			} else {
 				res.WriteStatusLine(response.StatusOK)
-				headers.Delete("Content-Length")
-				headers.Set("transfer-encoding", "chunked")
-				headers.Set("Content-Type", "text/plain")
-				res.WriteHeaders(headers)
+				h.Delete("Content-Length")
+				h.Set("transfer-encoding", "chunked")
+				h.Set("Content-Type", "text/plain")
+				h.Set("Trailer", "X-Content-SHA256")
+				h.Set("Trailer", "X-Content-Length")
+				res.WriteHeaders(h)
+				fullBody := []byte{}
 				for {
 					data := make([]byte, 32)
 					n, err := r.Body.Read(data)
 					if err != nil {
 						break
 					}
+					fullBody = append(fullBody, data[:n]...)
 					res.WriteBody(fmt.Appendf([]byte{}, "%x\r\n", n))
 					res.WriteBody(data[:n])
 					res.WriteBody([]byte("\r\n"))
 				}
-				res.WriteBody([]byte("0\r\n\r\n"))
+				res.WriteBody([]byte("0\r\n"))
+				tailers := headers.New()
+				hash := sha256.Sum256(fullBody)
+				toHexadecimalStr := func(bytes []byte) (result string) {
+					for _, c := range bytes {
+						result += fmt.Sprintf("%02x", c)
+					}
+					return
+				}
+				tailers.Set("X-Content-SHA256", toHexadecimalStr(hash[:]))
+				tailers.Set("X-Content-Length", fmt.Sprint(len(fullBody)))
+				res.WriteHeaders(tailers)
 				return
 			}
 		}
 		res.WriteStatusLine(statusCode)
-		headers.Replace("Content-Length", fmt.Sprint(len(body)))
-		headers.Replace("Content-Type", contentType)
-		res.WriteHeaders(headers)
+		h.Replace("Content-Length", fmt.Sprint(len(body)))
+		h.Replace("Content-Type", contentType)
+		res.WriteHeaders(h)
 		res.WriteBody(body)
 	})
 	if err != nil {
