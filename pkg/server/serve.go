@@ -1,12 +1,14 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/request"
-	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/request"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/response"
+	"github.com/i9si-sistemas/stringx"
 )
 
 type Server struct {
@@ -22,7 +24,17 @@ type route struct {
 	handler  Handler
 }
 
-func Serve(port int) (*Server, error) {
+var ErrInvalidPort = errors.New("invalid port")
+
+func New(port string) (*Server, error) {
+	v, err := stringx.NewParser(port).Int()
+	if err != nil {
+		return nil, errors.Join(ErrInvalidPort, err)
+	}
+	return serve(int(v))
+}
+
+func serve(port int) (*Server, error) {
 	server := &Server{
 		Addr:     fmt.Sprintf(":%d", port),
 		handlers: make([]route, 0),

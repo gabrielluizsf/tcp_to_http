@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/gabrielluizsf/tcp_to_http/internal/request"
-	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/request"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/response"
 )
 
 type HandlerError struct {

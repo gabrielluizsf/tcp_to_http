@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/headers"
 )
 
 func WriteHeaders(

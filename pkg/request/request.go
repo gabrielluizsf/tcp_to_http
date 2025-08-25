@@ -4,8 +4,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
-	"github.com/gabrielluizsf/tcp_to_http/internal/version"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/headers"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/version"
 	"github.com/i9si-sistemas/stringx"
 )
 

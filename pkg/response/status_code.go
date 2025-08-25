@@ -3,7 +3,7 @@ package response
 import (
 	"io"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/version"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/version"
 	"github.com/i9si-sistemas/stringx"
 )
 
@@ -132,8 +132,8 @@ func (sc StatusCode) String() string {
 		return "451 Unavailable For Legal Reasons"
 
 	// 5xx Server Errors
-	case StatusInternalServerError:
-		return "500 Internal Server Error"
+	case StatuspkgServerError:
+		return "500 pkg Server Error"
 	case StatusNotImplemented:
 		return "501 Not Implemented"
 	case StatusBadGateway:
@@ -227,7 +227,7 @@ const (
 	StatusUnavailableForLegalReasons   StatusCode = 451
 
 	// 5xx
-	StatusInternalServerError           StatusCode = 500
+	StatuspkgServerError                StatusCode = 500
 	StatusNotImplemented                StatusCode = 501
 	StatusBadGateway                    StatusCode = 502
 	StatusServiceUnavailable            StatusCode = 503

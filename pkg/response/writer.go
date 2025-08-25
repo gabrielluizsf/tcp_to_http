@@ -3,7 +3,7 @@ package response
 import (
 	"io"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/headers"
 )
 
 type Writer struct {

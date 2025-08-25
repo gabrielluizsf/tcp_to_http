@@ -3,8 +3,8 @@ package server
 import (
 	"regexp"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/request"
-	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/request"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/response"
 	"github.com/i9si-sistemas/nine"
 	"github.com/i9si-sistemas/stringx"
 )

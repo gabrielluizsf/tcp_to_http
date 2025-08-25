@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
-	"github.com/gabrielluizsf/tcp_to_http/internal/request"
-	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/headers"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/request"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/response"
 	"github.com/gabrielluizsf/tcp_to_http/pkg/server"
 )
 
@@ -32,7 +32,7 @@ func main() {
 		res.WriteBody(body)
 	})
 	server.Get("/myproblem", func(res *response.Writer, req *request.Request) {
-		statusCode := response.StatusInternalServerError
+		statusCode := response.StatuspkgServerError
 		contentType, body := respond500()
 		res.WriteStatusLine(statusCode)
 		h := response.GetDefaultHeaders(0)
@@ -58,7 +58,7 @@ func main() {
 		if err != nil {
 			contentType, body := respond500()
 			h.Replace("Content-Type", contentType)
-			statusCode := response.StatusInternalServerError
+			statusCode := response.StatuspkgServerError
 			res.WriteStatusLine(statusCode)
 			res.WriteHeaders(h)
 			res.WriteBody(body)
@@ -127,10 +127,10 @@ func respond500() (contentType string, data []byte) {
 	contentType = HTML_CONTENT_TYPE
 	data = []byte(`<html>
   <head>
-    <title>500 Internal Server Error</title>
+    <title>500 pkg Server Error</title>
   </head>
   <body>
-    <h1>Internal Server Error</h1>
+    <h1>pkg Server Error</h1>
     <p>Okay, you know what? This one is on me.</p>
   </body>
 </html>`)

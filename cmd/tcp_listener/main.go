@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/gabrielluizsf/tcp_to_http/internal/request"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/request"
 )
 
 var (
@@ -48,7 +48,7 @@ func readFromNetConn() {
 			fmt.Println("Body:")
 			fmt.Printf("%s\n", r.Body)
 		}
-		
+
 	}
 }
 
