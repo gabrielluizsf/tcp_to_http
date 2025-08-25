@@ -20,7 +20,7 @@ const (
 )
 
 func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
-	return func(w *response.Writer, req *request.Request) {
+	middleware := func(w *response.Writer, req *request.Request) {
 		isEqual := stringx.New(req.Line.Method).Equal(string(method))
 		if !isEqual {
 			statusCode := response.StatusMethodNotAllowed
@@ -42,6 +42,7 @@ func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
 		req.Params.Set(req.Line.Target, endpoint)
 		handler(w, req)
 	}
+	return middleware
 }
 
 func (s *Server) Get(endpoint string, handler Handler) {
