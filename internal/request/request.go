@@ -92,11 +92,12 @@ func parseRequestLine(
 
 // Request represents the HTTP request
 type Request struct {
-	Line    RequestLine
-	Params  Params
-	Headers headers.Headers
-	Body    []byte
-	state   parserState
+	Line        RequestLine
+	Params      Params
+	QueryParams QueryParams
+	Headers     headers.Headers
+	Body        []byte
+	state       parserState
 }
 
 func (req *Request) parse(data []byte) (int, error) {

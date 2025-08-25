@@ -28,7 +28,7 @@ func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
 			msg := nine.JSON{
 				"error": statusText,
 			}
-			msgBytes, _  := msg.Bytes()
+			msgBytes, _ := msg.Bytes()
 			headers := response.GetDefaultHeaders(len(msgBytes))
 			headers.Replace("Content-Type", "application/json")
 			w.WriteStatusLine(response.StatusMethodNotAllowed)
@@ -36,6 +36,8 @@ func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
 			w.WriteBody(msgBytes)
 			return
 		}
+		req.QueryParams = req.QueryParams.Reset()
+		req.QueryParams.Parse(req.Line.Target)
 		req.Params = req.Params.Reset()
 		req.Params.Set(req.Line.Target, endpoint)
 		handler(w, req)
