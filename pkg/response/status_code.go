@@ -132,8 +132,8 @@ func (sc StatusCode) String() string {
 		return "451 Unavailable For Legal Reasons"
 
 	// 5xx Server Errors
-	case StatuspkgServerError:
-		return "500 pkg Server Error"
+	case StatusInternalServerError:
+		return "500 Internal Server Error"
 	case StatusNotImplemented:
 		return "501 Not Implemented"
 	case StatusBadGateway:
@@ -227,7 +227,7 @@ const (
 	StatusUnavailableForLegalReasons   StatusCode = 451
 
 	// 5xx
-	StatuspkgServerError                StatusCode = 500
+	StatusInternalServerError           StatusCode = 500
 	StatusNotImplemented                StatusCode = 501
 	StatusBadGateway                    StatusCode = 502
 	StatusServiceUnavailable            StatusCode = 503

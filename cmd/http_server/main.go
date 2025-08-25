@@ -32,7 +32,7 @@ func main() {
 		res.WriteBody(body)
 	})
 	server.Get("/myproblem", func(res *response.Writer, req *request.Request) {
-		statusCode := response.StatuspkgServerError
+		statusCode := response.StatusInternalServerError
 		contentType, body := respond500()
 		res.WriteStatusLine(statusCode)
 		h := response.GetDefaultHeaders(0)
@@ -58,7 +58,7 @@ func main() {
 		if err != nil {
 			contentType, body := respond500()
 			h.Replace("Content-Type", contentType)
-			statusCode := response.StatuspkgServerError
+			statusCode := response.StatusInternalServerError
 			res.WriteStatusLine(statusCode)
 			res.WriteHeaders(h)
 			res.WriteBody(body)
