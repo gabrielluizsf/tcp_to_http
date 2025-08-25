@@ -13,50 +13,55 @@ import (
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
 	"github.com/gabrielluizsf/tcp_to_http/internal/server"
-	"github.com/i9si-sistemas/stringx"
 )
 
 const port = 42069
 
 func main() {
-	server, err := server.Serve(port, handler)
+	server, err := server.Serve(port)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
-	defer server.Close()
-	log.Println("Server started on port", port)
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
-	log.Println("Server gracefully stopped")
-}
-
-func handler(res *response.Writer, req *request.Request) {
-	endpoint := stringx.New(req.Line.Target)
-	h := response.GetDefaultHeaders(0)
-	contentType, body := respond200()
-	statusCode := response.StatusOK
-	switch {
-	case endpoint.Equal("/yourproblem"):
-		statusCode = response.StatusBadRequest
-		contentType, body = respond400()
-	case endpoint.Equal("/myproblem"):
-		statusCode = response.StatusInternalServerError
-		contentType, body = respond500()
-	case endpoint.Equal("/video"):
+	server.Get("/yourproblem", func(res *response.Writer, req *request.Request) {
+		statusCode := response.StatusBadRequest
+		contentType, body := respond400()
+		res.WriteStatusLine(statusCode)
+		h := response.GetDefaultHeaders(0)
+		h.Replace("Content-Length", fmt.Sprint(len(body)))
+		h.Replace("Content-Type", contentType)
+		res.WriteHeaders(h)
+		res.WriteBody(body)
+	})
+	server.Get("/myproblem", func(res *response.Writer, req *request.Request) {
+		statusCode := response.StatusInternalServerError
+		contentType, body := respond500()
+		res.WriteStatusLine(statusCode)
+		h := response.GetDefaultHeaders(0)
+		h.Replace("Content-Length", fmt.Sprint(len(body)))
+		h.Replace("Content-Type", contentType)
+		res.WriteHeaders(h)
+		res.WriteBody(body)
+	})
+	server.Get("/video", func(res *response.Writer, req *request.Request) {
 		f, _ := os.ReadFile("./assets/video.mp4")
+		h := response.GetDefaultHeaders(0)
 		h.Set("Content-Type", "video/mp4")
 		h.Replace("Content-Length", fmt.Sprint(len(f)))
 		res.WriteStatusLine(response.StatusOK)
 		res.WriteHeaders(h)
 		res.WriteBody(f)
-		return
-	case endpoint.HasPrefix("/httpbin/stream"):
-		r, err := http.Get("https://httpbin.org/" + endpoint.String()[len("/httpbin/"):])
+	})
+	server.Post("/httpbin/stream", func(res *response.Writer, req *request.Request) {
+		h := response.GetDefaultHeaders(0)
+		r, err := http.Get("https://httpbin.org/" + req.Line.Target[len("/httpbin/"):])
 		if err != nil {
-			contentType, body = respond500()
-			statusCode = response.StatusInternalServerError
+			contentType, body := respond500()
+			h.Replace("Content-Type", contentType)
+			statusCode := response.StatusInternalServerError
+			res.WriteStatusLine(statusCode)
+			res.WriteHeaders(h)
+			res.WriteBody(body)
+			return
 		} else {
 			res.WriteStatusLine(response.StatusOK)
 			h.Delete("Content-Length")
@@ -91,12 +96,14 @@ func handler(res *response.Writer, req *request.Request) {
 			res.WriteHeaders(tailers)
 			return
 		}
-	}
-	res.WriteStatusLine(statusCode)
-	h.Replace("Content-Length", fmt.Sprint(len(body)))
-	h.Replace("Content-Type", contentType)
-	res.WriteHeaders(h)
-	res.WriteBody(body)
+	})
+	defer server.Close()
+	log.Println("Server started on port", port)
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+	log.Println("Server gracefully stopped")
 }
 
 const HTML_CONTENT_TYPE = "text/html; charset=utf-8"
