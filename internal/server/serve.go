@@ -7,6 +7,7 @@ import (
 
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/i9si-sistemas/stringx"
 )
 
 type Server struct {
@@ -68,7 +69,10 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 		responseWriter.WriteHeaders(response.GetDefaultHeaders(0))
 		return
 	}
-	if handler, ok := s.handlers[req.Line.Target]; ok {
-		handler(responseWriter, req)
+	for endpoint, handler := range s.handlers {
+		if stringx.New(req.Line.Target).Includes(endpoint) && handler != nil {
+			handler(responseWriter, req)
+			return
+		}
 	}
 }
