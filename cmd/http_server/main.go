@@ -51,9 +51,11 @@ func main() {
 		res.WriteHeaders(h)
 		res.WriteBody(f)
 	})
-	server.Post("/httpbin/stream", func(res *response.Writer, req *request.Request) {
+	server.Post("/httpbin/stream/:value", func(res *response.Writer, req *request.Request) {
 		h := response.GetDefaultHeaders(0)
-		r, err := http.Get("https://httpbin.org/" + req.Line.Target[len("/httpbin/"):])
+		value := req.Params.Get("value")
+		log.Println(value)
+		r, err := http.Get("https://httpbin.org/stream/" + value)
 		if err != nil {
 			contentType, body := respond500()
 			h.Replace("Content-Type", contentType)

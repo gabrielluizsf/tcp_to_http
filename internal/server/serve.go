@@ -7,20 +7,25 @@ import (
 
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
-	"github.com/i9si-sistemas/stringx"
 )
 
 type Server struct {
 	Addr     string
 	Listener net.Listener
-	handlers map[string]Handler
+	handlers []route
 	closed   bool
+}
+
+type route struct {
+	endpoint string
+	matcher  func(string) bool
+	handler  Handler
 }
 
 func Serve(port int) (*Server, error) {
 	server := &Server{
 		Addr:     fmt.Sprintf(":%d", port),
-		handlers: make(map[string]Handler),
+		handlers: make([]route, 0),
 	}
 	if err := runServer(server); err != nil {
 		return nil, err
@@ -69,10 +74,11 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 		responseWriter.WriteHeaders(response.GetDefaultHeaders(0))
 		return
 	}
-	for endpoint, handler := range s.handlers {
-		if stringx.New(req.Line.Target).Includes(endpoint) && handler != nil {
-			handler(responseWriter, req)
+	for _, r := range s.handlers {
+		if r.matcher(req.Line.Target) {
+			r.handler(responseWriter, req)
 			return
 		}
 	}
+
 }
