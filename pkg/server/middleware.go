@@ -19,7 +19,47 @@ const (
 	DELETE Method = "DELETE"
 )
 
-func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
+func (s *Server) Get(endpoint string, handler Handler) {
+	s.handlers = append(s.handlers, route{
+		endpoint: endpoint,
+		matcher:  buildMatcher(endpoint),
+		handler:  methodMiddleware(GET, endpoint, handler),
+	})
+}
+
+func (s *Server) Post(endpoint string, handler Handler) {
+	s.handlers = append(s.handlers, route{
+		endpoint: endpoint,
+		matcher:  buildMatcher(endpoint),
+		handler:  methodMiddleware(POST, endpoint, handler),
+	})
+}
+
+func (s *Server) Put(endpoint string, handler Handler) {
+	s.handlers = append(s.handlers, route{
+		endpoint: endpoint,
+		matcher:  buildMatcher(endpoint),
+		handler:  methodMiddleware(PUT, endpoint, handler),
+	})
+}
+
+func (s *Server) Patch(endpoint string, handler Handler) {
+	s.handlers = append(s.handlers, route{
+		endpoint: endpoint,
+		matcher:  buildMatcher(endpoint),
+		handler:  methodMiddleware(PATCH, endpoint, handler),
+	})
+}
+
+func (s *Server) Delete(endpoint string, handler Handler) {
+	s.handlers = append(s.handlers, route{
+		endpoint: endpoint,
+		matcher:  buildMatcher(endpoint),
+		handler:  methodMiddleware(DELETE, endpoint, handler),
+	})
+}
+
+func methodMiddleware(method Method, endpoint string, handler Handler) Handler {
 	middleware := func(w *response.Writer, req *request.Request) {
 		isEqual := stringx.New(req.Line.Method).Equal(string(method))
 		if !isEqual {
@@ -43,46 +83,6 @@ func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
 		handler(w, req)
 	}
 	return middleware
-}
-
-func (s *Server) Get(endpoint string, handler Handler) {
-	s.handlers = append(s.handlers, route{
-		endpoint: endpoint,
-		matcher:  buildMatcher(endpoint),
-		handler:  MethodMiddleware(GET, endpoint, handler),
-	})
-}
-
-func (s *Server) Post(endpoint string, handler Handler) {
-	s.handlers = append(s.handlers, route{
-		endpoint: endpoint,
-		matcher:  buildMatcher(endpoint),
-		handler:  MethodMiddleware(POST, endpoint, handler),
-	})
-}
-
-func (s *Server) Put(endpoint string, handler Handler) {
-	s.handlers = append(s.handlers, route{
-		endpoint: endpoint,
-		matcher:  buildMatcher(endpoint),
-		handler:  MethodMiddleware(PUT, endpoint, handler),
-	})
-}
-
-func (s *Server) Patch(endpoint string, handler Handler) {
-	s.handlers = append(s.handlers, route{
-		endpoint: endpoint,
-		matcher:  buildMatcher(endpoint),
-		handler:  MethodMiddleware(PATCH, endpoint, handler),
-	})
-}
-
-func (s *Server) Delete(endpoint string, handler Handler) {
-	s.handlers = append(s.handlers, route{
-		endpoint: endpoint,
-		matcher:  buildMatcher(endpoint),
-		handler:  MethodMiddleware(DELETE, endpoint, handler),
-	})
 }
 
 func buildMatcher(endpoint string) func(string) bool {
