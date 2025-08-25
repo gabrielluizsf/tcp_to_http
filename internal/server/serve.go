@@ -12,14 +12,14 @@ import (
 type Server struct {
 	Addr     string
 	Listener net.Listener
-	handler  Handler
+	handlers map[string]Handler
 	closed   bool
 }
 
-func Serve(port int, h Handler) (*Server, error) {
+func Serve(port int) (*Server, error) {
 	server := &Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		handler: h,
+		Addr:     fmt.Sprintf(":%d", port),
+		handlers: make(map[string]Handler),
 	}
 	if err := runServer(server); err != nil {
 		return nil, err
@@ -68,5 +68,5 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 		responseWriter.WriteHeaders(response.GetDefaultHeaders(0))
 		return
 	}
-	s.handler(responseWriter, req)
+	s.handlers[req.Line.Target](responseWriter, req)
 }
