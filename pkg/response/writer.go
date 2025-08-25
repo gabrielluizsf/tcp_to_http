@@ -1,6 +1,7 @@
 package response
 
 import (
+	"encoding/json"
 	"io"
 
 	"github.com/gabrielluizsf/tcp_to_http/pkg/headers"
@@ -24,4 +25,20 @@ func (w *Writer) WriteHeaders(headers headers.Headers) error {
 
 func (w *Writer) WriteBody(data []byte) (int, error) {
 	return w.w.Write(data)
+}
+
+func (w *Writer) Send(data []byte) (int, error) {
+	return w.WriteBody(data)
+}
+
+func (w *Writer) SendString(data string) (int, error) {
+	return w.WriteBody([]byte(data))
+}
+
+func (w *Writer) JSON(data any) (int, error) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return 0, err
+	}
+	return w.WriteBody(b)
 }
