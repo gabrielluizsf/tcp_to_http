@@ -68,5 +68,7 @@ func (s *Server) handle(conn io.ReadWriteCloser) {
 		responseWriter.WriteHeaders(response.GetDefaultHeaders(0))
 		return
 	}
-	s.handlers[req.Line.Target](responseWriter, req)
+	if handler, ok := s.handlers[req.Line.Target]; ok {
+		handler(responseWriter, req)
+	}
 }
