@@ -5,6 +5,7 @@ import (
 
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
+	"github.com/i9si-sistemas/nine"
 	"github.com/i9si-sistemas/stringx"
 )
 
@@ -22,9 +23,17 @@ func MethodMiddleware(method Method, endpoint string, handler Handler) Handler {
 	return func(w *response.Writer, req *request.Request) {
 		isEqual := stringx.New(req.Line.Method).Equal(string(method))
 		if !isEqual {
-			headers := response.GetDefaultHeaders(0)
+			statusCode := response.StatusMethodNotAllowed
+			statusText := statusCode.String()
+			msg := nine.JSON{
+				"error": statusText,
+			}
+			msgBytes, _  := msg.Bytes()
+			headers := response.GetDefaultHeaders(len(msgBytes))
+			headers.Replace("Content-Type", "application/json")
 			w.WriteStatusLine(response.StatusMethodNotAllowed)
 			w.WriteHeaders(headers)
+			w.WriteBody(msgBytes)
 			return
 		}
 		req.Params = req.Params.Reset()
