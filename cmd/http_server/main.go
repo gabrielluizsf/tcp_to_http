@@ -12,13 +12,12 @@ import (
 	"github.com/gabrielluizsf/tcp_to_http/internal/headers"
 	"github.com/gabrielluizsf/tcp_to_http/internal/request"
 	"github.com/gabrielluizsf/tcp_to_http/internal/response"
-	"github.com/gabrielluizsf/tcp_to_http/internal/server"
+	"github.com/gabrielluizsf/tcp_to_http/pkg/server"
 )
 
-const port = 42069
-
 func main() {
-	server, err := server.Serve(port)
+	port := os.Getenv("PORT")
+	server, err := server.New(port)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
